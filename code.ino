@@ -20,6 +20,8 @@
  * Xcheck(str)  check if is given string return bool
  *
  * X_checker(str, len, count, input, trigger)  check continuous char to string
+ * 
+ * Revision Oct.16.2015
  */
 
 //lib
@@ -29,13 +31,13 @@
 
 
 //Motor define
-AF_DCMotor motor1(2, MOTOR12_64KHZ);  //front left
+AF_DCMotor motor1(1, MOTOR12_64KHZ);  //front left
 
-AF_DCMotor motor2(1, MOTOR12_64KHZ);  //front right
+AF_DCMotor motor2(4, MOTOR12_64KHZ);  //front right
 
-AF_DCMotor motor3(3, MOTOR12_64KHZ);  //back left
+AF_DCMotor motor3(2, MOTOR12_64KHZ);  //back left
 
-AF_DCMotor motor4(4, MOTOR12_64KHZ);  //back right
+AF_DCMotor motor4(3, MOTOR12_64KHZ);  //back right
 
 
 //varialble-------------------------------------------------
@@ -299,6 +301,33 @@ void setup() {
 
 }
 
+//data coding
+
+int digit(){
+  bool done = false;
+  int count = 0;
+  int result = 0;
+  int digit = 0;
+  
+  while(!done){
+    digit = Xbee.read();
+
+    if(digit >=48 && digit <= 57)
+    {
+      result = result*10 + digit-48;
+      count++;
+    }
+    
+    if(count == 3 || digit == 'z')
+    {
+      done = true;
+    }
+  }
+
+  return result;
+}
+
+
 void loop() {
   if (Xbee.available())
   {
@@ -314,8 +343,13 @@ void loop() {
     if (X_checker(Xgo.str, Xgo.len, &Xgo.count, reader, &Xgo.trigger))
     {
       Xbee.println();
-      Xbee.println("Go");
-      attack(255);
+      Xbee.print("Speed\n>");
+      int s = digit();
+      s = constrain(s, 0, 100);
+      Xbee.print("\nGoing: ");
+      Xbee.println(s);
+      s = map(s, 0, 100, 0, 255);
+      attack(s);
     }
     
 
@@ -323,7 +357,13 @@ void loop() {
     {
       Xbee.println();
       Xbee.println("Retreat");
-      retreat(255);
+      Xbee.print("Speed\n>");
+      int s = digit();
+      s = constrain(s, 0, 100);
+      Xbee.print("\nGoing: ");
+      Xbee.println(s);
+      s = map(s, 0, 100, 0, 255);
+      retreat(s);
     }
   }
 }
